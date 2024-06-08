@@ -1,19 +1,16 @@
-require('dotenv').config();
 const bodyParser = require('body-parser');
 const express = require('express');
+const axios = require('axios');
 const app = express();
+const lembretes = {};
+require('dotenv').config();
+
+let contador = 0;
 
 app.use(bodyParser.json());
 
-const lembretes = {};
-let contador = 0;
-
-const axios = require('axios');
-
 //GET -> devolvendo a colecao de lembretes
-app.get('/lembretes', (req, res) => {
-    res.send(lembretes);
-});
+app.get('/lembretes', (req, res) => res.send(lembretes));
 
 //PUT -> geracao de id e criacao de lembrete
 app.put('/lembretes', async (req, res) => {
@@ -41,11 +38,7 @@ app.delete('/lembretes/:id', (req, res) => {
     if (lembretes[id]) {
         delete lembretes[id];
         res.status(200).send({ msg: `Lembrete ${id} deletado.` });
-    } else {
-        res.status(404).send({ msg: `Lembrete ${id} não encontrado.` });
-    }
+    } else res.status(404).send({ msg: `Lembrete ${id} não encontrado.` });
 });
 
-app.listen(process.env.PORT, () => {
-    console.log(`Lembretes. Porta ${process.env.PORT}`);
-});
+app.listen(process.env.PORT, () => console.log(`Lembretes. Porta ${process.env.PORT}`));

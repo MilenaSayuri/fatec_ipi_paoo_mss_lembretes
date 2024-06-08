@@ -1,14 +1,14 @@
-require('dotenv').config();
 const express = require("express");
 const axios = require("axios");
 const app = express();
-app.use(express.json());
+require('dotenv').config();
 
-const palavraChave = 'importante';
+app.use(express.json());
 
 const funcoes = {
     ObservacaoCriada: (observacao) => {
-        observacao.status = observacao.texto.includes(palavraChave) ? "importante" : "comum";
+        let txt = observacao.texto.toLowerCase()
+        observacao.status = txt.includes('importante') ? 'importante' : txt.includes(`urgente`) ? `urgente` : 'comum'
         axios.post("http://localhost:10000/eventos", {
             tipo: "ObservacaoClassificada",
             dados: observacao,
@@ -23,6 +23,4 @@ app.post('/eventos', (req, res) => {
     res.status(200).send({ msg: "ok" });
 });
 
-app.listen(process.env.PORT, () => {
-    console.log(`Classificação. Porta ${process.env.PORT}`)
-});
+app.listen(process.env.PORT, () => console.log(`Classificação. Porta ${process.env.PORT}`));

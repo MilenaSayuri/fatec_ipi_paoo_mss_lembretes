@@ -1,11 +1,10 @@
-require('dotenv').config();
 const express = require("express");
 const axios = require('axios');
-
-const app = express();
-app.use(express.json());
-
 const baseConsulta = {};
+const app = express();
+require('dotenv').config();
+
+app.use(express.json());
 
 const funcoes = {
     LembreteCriado: (lembrete) => {
@@ -23,9 +22,7 @@ const funcoes = {
     },
 };
 
-app.get("/lembretes", (req, res) => {
-    res.status(200).send(baseConsulta);
-});
+app.get("/lembretes", (req, res) => res.status(200).send(baseConsulta));
 
 app.post("/eventos", (req, res) => {
     try {
@@ -37,8 +34,7 @@ app.post("/eventos", (req, res) => {
 
 app.listen(process.env.PORT, async () => {
     console.log(`Consultas. Porta ${process.env.PORT}`)
-    const resp = await
-        axios.get("http://localhost:10000/eventos");
+    const resp = await axios.get("http://localhost:10000/eventos");
     resp.data.forEach((valor, indice, colecao) => {
         try {
             funcoes[valor.tipo](valor.dados);

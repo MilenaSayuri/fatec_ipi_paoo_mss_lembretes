@@ -1,18 +1,18 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParse = require('body-parser');
-
 const axios = require('axios');
-
 const app = express();
+const eventos = [];
+
 app.use(bodyParse.json());
 
-const eventos = [];
+app.get('/eventos', (req, res) => res.send(eventos));
 
 app.post('/eventos', (req, res) => {
     const evento = req.body;
     eventos.push(evento)
-    console.log(evento);
+
     try {
 
         // if (!evento.tipo.length > 0)
@@ -31,10 +31,5 @@ app.post('/eventos', (req, res) => {
     } catch (e) { throw new Exception(e.message) }
 });
 
-app.get('/eventos', (req, res) => {
-    res.send(eventos)
-});
 
-app.listen(process.env.PORT, () => {
-    console.log(`Barramento de Evento. Porta ${process.env.PORT}`)
-});
+app.listen(process.env.PORT, () => console.log(`Barramento de Evento. Porta ${process.env.PORT}`));

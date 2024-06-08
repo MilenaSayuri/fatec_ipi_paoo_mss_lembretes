@@ -3,42 +3,41 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const axios = require('axios')
 const app = express();
-app.use(bodyParser.json());
-
-const observacoesaPorLembreteId = {};
-
 const { v4: uuidv4 } = require('uuid');
 
-const axios = require('axios')
+const observacoesPorLembreteId = {};
+app.use(bodyParser.json());
+
 
 const funcoes = {
     ObservacaoClassificada: (observacao) => {
-        const observacoes =
-            observacoesPorLembreteId[observacao.lembreteId];
-        const obsParaAtualizar = observacoes.find(o => o.id ===
-            observacao.id)
-        obsParaAtualizar.status = observacao.status;
+        const observacoes = observacoesPorLembreteId[observacao.dados.lembreteId];
+        const obsParaAtualizar = observacoes.find(o => o.id === observacao.dados.id)
+        obsParaAtualizar.status = observacao.dados.status;
         axios.post('http://localhost:10000/eventos', {
             tipo: "ObservacaoAtualizada",
             dados: {
-                id: observacao.id,
-                texto: observacao.texto,
-                lembreteId: observacao.lembreteId,
-                status: observacao.status
+                id: observacao.dados.id,
+                texto: observacao.dados.texto,
+                lembreteId: observacao.dados.lembreteId,
+                status: observacao.dados.status
             }
         });
     }
 }
 /* O evento do tipo ObservacaoAtualizada tem como destino o microsserviço de consulta. Ele busca a observação pelo id e substitui o objeto existente por aquele incluído no evento. */
 
+app.get('/lembretes/:id/observacoes', (req, res) => res.send(observacoesPorLembreteId[req.params.id] || []));
+
 app.put('/lembretes/:id/observacoes', async (req, res) => {
     const idObs = uuidv4();
     const { texto } = req.body;
-    const observacoesDoLembrete = observacoesaPorLembreteId[req.params.id] || [];
+    const observacoesDoLembrete = observacoesPorLembreteId[req.params.id] || [];
     observacoesDoLembrete.push({ id: idObs, texto, status: 'aguardando' });
-    observacoesaPorLembreteId[req.params.id] = observacoesDoLembrete;
+    observacoesPorLembreteId[req.params.id] = observacoesDoLembrete;
+    
     await axios.post('http://localhost:10000/eventos', {
         tipo: "ObservacaoCriada",
         dados: {
@@ -50,10 +49,6 @@ app.put('/lembretes/:id/observacoes', async (req, res) => {
     res.status(201).send(observacoesDoLembrete);
 });
 
-app.get('/lembretes/:id/observacoes', (req, res) => {
-    res.send(observacoesaPorLembreteId[req.params.id] || []);
-});
-
 app.post('/eventos', (req, res) => {
     try {
         funcoes[req.body.tipo](req.body);
@@ -62,6 +57,4 @@ app.post('/eventos', (req, res) => {
     res.status(200).send({ msg: 'OK' });
 });
 
-app.listen(process.env.PORT, (() => {
-    console.log(`Lembretes. Porta ${process.env.PORT}`);
-}));
+app.listen(process.env.PORT, (() => console.log(`Observacoes. Porta ${process.env.PORT}`)));
